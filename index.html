@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Sets the character encoding for the document to UTF-8, supporting a wide range of characters. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Configures the viewport for responsive design, making the page adapt to different screen sizes. -->
+    <title>Virtual Art Gallery</title>
+    <!-- Sets the title that appears in the browser tab or window title bar. -->
+
+    <!-- Link to Google Fonts for 'Inter' font family, enhancing typography. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN for modern and responsive styling. Must be loaded before custom styles. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons (e.g., play, pause, nav arrows). -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /*
+         * Embedded CSS for the Virtual Art Gallery
+         * This section contains custom CSS rules that complement or override Tailwind CSS
+         * for specific elements like the modal, custom animations, typography, and controls.
+         */
+
+        /* Body styling: Sets font and background. */
+        body {
+            font-family: 'Inter', sans-serif; /* Applies the 'Inter' font globally. */
+            min-height: 100vh; /* Ensures body takes full viewport height for sticky footer */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal overlay styling: Covers the entire screen when active. */
+        .modal {
+            display: none; /* Hidden by default. */
+            position: fixed; /* Stays in place relative to the viewport. */
+            z-index: 50; /* Ensures it's on top of other content. */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width. */
+            height: 100%; /* Full height. */
+            overflow: auto; /* Allows scrolling if content exceeds viewport. */
+            background-color: rgba(0,0,0,0.8); /* Semi-transparent black background. */
+            backdrop-filter: blur(5px); /* Adds a blur effect to the background content. */
+            display: flex; /* Use flex to center modal content */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+        }
+
+        /* Modal content box styling: Contains the enlarged image and details. */
+        .modal-content {
+            position: relative; /* Allows absolute positioning of child elements like the close button. */
+            margin: auto; /* Centers the modal vertically and horizontally */
+            padding: 20px; /* Padding inside the modal content. */
+            width: 90%; /* Responsive width. */
+            max-width: 900px; /* Maximum width for larger screens. */
+            background-color: #ffffff; /* White background. */
+            border-radius: 12px; /* More rounded corners. */
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4); /* Stronger, more appealing shadow. */
+            animation-name: fadeIn; /* Apply fade-in animation. */
+            animation-duration: 0.4s; /* Animation duration. */
+            border: 1px solid #e2e8f0; /* Subtle border for definition. */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Keyframe animation for modal fade-in effect. */
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);} /* Starts transparent and slightly above. */
+            to {opacity: 1; transform: translateY(0);} /* Ends fully opaque and in original position. */
+        }
+
+        /* Close button styling for the modal. */
+        .close-button {
+            color: #718096; /* Grayish color. */
+            font-size: 32px; /* Larger font size. */
+            font-weight: bold;
+            position: absolute; /* Positions absolutely within modal-content. */
+            top: 15px; /* Distance from top. */
+            right: 20px; /* Distance from right. */
+            cursor: pointer; /* Changes cursor to pointer on hover. */
+            transition: color 0.2s ease; /* Smooth color transition on hover. */
+            z-index: 60; /* Ensure it's above other modal content */
+        }
+        /* Close button hover and focus effects. */
+        .close-button:hover,
+        .close-button:focus {
+            color: #333; /* Darker color on hover/focus. */
+            text-decoration: none; /* Removes underline on focus. */
+        }
+
+        /* Modal image styling: Controls size and adds zoom transition. */
+        .modal-image {
+            width: 100%; /* Takes full width of the modal content. */
+            height: auto; /* Maintain aspect ratio. */
+            max-height: 60vh; /* Limits max height to prevent excessively tall images. */
+            object-fit: contain; /* Ensures entire image is visible within bounds. */
+            border-radius: 8px; /* Rounded corners. */
+            margin-bottom: 15px; /* Space below image. */
+            transition: transform 0.3s ease-in-out, cursor 0.1s ease; /* Smooth transition for zoom and cursor. */
+            cursor: zoom-in; /* Default cursor for zoom. */
+        }
+
+        /* Zoomed state for modal image. */
+        .modal-image.zoomed {
+            transform: scale(1.15); /* Slightly enlarge the image for zoom-in. */
+            cursor: zoom-out; /* Changes cursor to zoom-out when zoomed. */
+            object-fit: cover; /* Allows cropping to fill view when zoomed. */
+            max-height: 80vh; /* Increased max-height for zoomed state */
+        }
+
+        /* Modal caption styling: Displays artwork details. */
+        .modal-caption {
+            text-align: center; /* Center align text. */
+            font-size: 1.1rem; /* Slightly larger font size. */
+            color: #555; /* Medium gray color. */
+            line-height: 1.5; /* Improved readability. */
+            margin-bottom: 20px; /* Space before nav buttons */
+        }
+
+        /* Modal navigation buttons (positioned relative to the main modal overlay) */
+        .modal-nav-button {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            font-size: 2rem;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            position: absolute; /* Positioned relative to the .modal container now */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 55; /* Above modal content but below close button */
+            transition: background-color 0.3s ease;
+        }
+        .modal-nav-button:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-nav-button.prev {
+            left: 15px;
+        }
+        .modal-nav-button.next {
+            right: 15px;
+        }
+
+        /* Responsive adjustments for modal on very small screens. */
+        @media (max-width: 640px) {
+            .modal-content {
+                margin: 2% auto; /* Reduced margin for smaller screens. */
+                padding: 15px; /* Reduced padding. */
+            }
+            .modal-image {
+                max-height: 60vh; /* Further limit image height on small screens. */
+            }
+            .modal-caption {
+                font-size: 0.95rem; /* Smaller font for caption. */
+            }
+            .close-button {
+                font-size: 24px; /* Smaller close button. */
+                top: 10px;
+                right: 10px;
+            }
+            .modal-nav-button {
+                font-size: 1.5rem;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Header section: Defines the gallery title. -->
+    <!-- Tailwind classes for background, text color, padding, text alignment, rounded bottom, and shadow. -->
+    <header class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-6 text-center rounded-b-lg shadow-xl">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-wide">My Virtual Art Gallery</h1>
+    </header>
+
+    <!-- Main gallery content area. -->
+    <!-- Tailwind classes for padding, flexible grid layout, and gap between items. -->
+    <main class="gallery p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 flex-grow">
+        <!-- Artwork elements will be dynamically loaded here by JavaScript. -->
+    </main>
+
+    <!-- Footer section: Displays copyright information. -->
+    <!-- Tailwind classes for background, text color, padding, text alignment, rounded top, and shadow. -->
+    <footer class="bg-gray-800 text-white py-4 text-center rounded-t-lg shadow-md mt-auto">
+        <p class="text-sm opacity-80">&copy; 2025 My Art Gallery. All rights reserved.</p>
+        <!-- Background Music Control -->
+        <div class="mt-2">
+            <button id="music-toggle-button" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-full text-sm transition-colors duration-200">
+                <i class="fas fa-music mr-2"></i> Toggle Music
+            </button>
+        </div>
+    </footer>
+
+    <!-- Modal for displaying enlarged artwork and details -->
+    <div id="artwork-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <img id="modal-artwork-image" class="modal-image" src="" alt="Artwork">
+            <p id="modal-artwork-caption" class="modal-caption"></p>
+        </div>
+        <!-- Navigation buttons moved here, directly within the .modal and outside .modal-content -->
+        <button id="modal-prev-button" class="modal-nav-button prev"><i class="fas fa-chevron-left"></i></button>
+        <button id="modal-next-button" class="modal-nav-button next"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    
+    <!-- Audio element for background music -->
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- JavaScript for dynamic gallery generation and modal functionality. -->
+    <script>
+        // Ensure the DOM is fully loaded before executing JavaScript.
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get reference to the main gallery container.
+            const gallery = document.querySelector('.gallery');
+            // Get references to modal elements
+            const artworkModal = document.getElementById('artwork-modal');
+            const modalImage = document.getElementById('modal-artwork-image');
+            const modalCaption = document.getElementById('modal-artwork-caption');
+            // Select the close button from within the modal-content
+            const closeButton = artworkModal.querySelector('.close-button'); // Ensure it's selected correctly inside modal-content
+            const modalPrevButton = document.getElementById('modal-prev-button');
+            const modalNextButton = document.getElementById('modal-next-button');
+
+            // Get background music elements
+            const backgroundMusic = document.getElementById('background-music');
+            const musicToggleButton = document.getElementById('music-toggle-button');
+
+            // Variable to keep track of the currently displayed artwork in the modal
+            let currentModalArtworkIndex = -1;
+
+            // Sample artwork data: An array of objects, each representing an artwork.
+            // Includes title, artist, image URL, description, year, and medium.
+            const artworks = [
+                {
+                    title: 'Starry Night',
+                    artist: 'Vincent van Gogh',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_1889.jpg/1280px-Van_Gogh_-_Starry_Night_-_1889.jpg',
+                    description: 'A famous painting depicting a night sky with swirling brushstrokes and a prominent cypress tree.',
+                    year: 1889,
+                    medium: 'Oil on canvas'
+                },
+                {
+                    title: 'Mona Lisa',
+                    artist: 'Leonardo da Vinci',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Mona_Lisa.jpg/1280px-Mona_Lisa.jpg',
+                    description: 'A renowned portrait of a woman with an enigmatic smile, famous for its sfumato technique.',
+                    year: 1503,
+                    medium: 'Oil on poplar panel'
+                },
+                {
+                    title: 'The Scream',
+                    artist: 'Edvard Munch',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/The_Scream_by_Edvard_Munch%2C_1893.jpg/1280px-The_Scream_by_Edvard_Munch%2C_1893.jpg',
+                    description: 'An iconic expressionist painting symbolizing the anxiety of modern humanity.',
+                    year: 1893,
+                    medium: 'Oil, tempera and pastel on cardboard'
+                },
+                {
+                    title: 'Girl with a Pearl Earring',
+                    artist: 'Johannes Vermeer',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/1280px-1665_Girl_with_a_Pearl_Earring.jpg',
+                    description: 'A captivating portrait, sometimes referred to as the "Mona Lisa of the North".',
+                    year: 1665,
+                    medium: 'Oil on canvas'
+                },
+                {
+                    title: 'The Birth of Venus',
+                    artist: 'Sandro Botticelli',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_The_Birth_of_Venus_-_c._1485_-_Uffizi.jpg/1280px-Sandro_Botticelli_-_The_Birth_of_Venus_-_c._1485_-_Uffizi.jpg',
+                    description: 'A masterpiece depicting the goddess Venus emerging from a seashell.',
+                    year: 1485,
+                    medium: 'Tempera on canvas'
+                },
+                {
+                    title: 'Guernica',
+                    artist: 'Pablo Picasso',
+                    image: 'https://upload.wikimedia.org/wikipedia/commons/7/74/Guernica_picasso.jpg',
+                    description: 'A powerful anti-war painting depicting the bombing of Guernica during the Spanish Civil War.',
+                    year: 1937,
+                    medium: 'Oil on canvas'
+                }
+            ];
+
+            // --- Function to Display Artwork in Modal ---
+            /**
+             * Displays a specific artwork's details in the modal pop-up.
+             * @param {number} index - The index of the artwork in the 'artworks' array.
+             */
+            function showArtworkInModal(index) {
+                // Handle looping for modal navigation
+                if (index < 0) {
+                    currentModalArtworkIndex = artworks.length - 1;
+                } else if (index >= artworks.length) {
+                    currentModalArtworkIndex = 0;
+                } else {
+                    currentModalArtworkIndex = index;
+                }
+
+                const artwork = artworks[currentModalArtworkIndex];
+                modalImage.src = artwork.image;
+                modalImage.alt = artwork.title;
+                modalCaption.textContent = `${artwork.title} - ${artwork.artist} (${artwork.year}), ${artwork.medium}. ${artwork.description}`;
+                
+                // Reset zoom state when new artwork is loaded into modal
+                modalImage.classList.remove('zoomed');
+                modalImage.style.cursor = 'zoom-in'; // Ensure cursor is zoom-in initially
+            }
+
+            // --- Function to Create Artwork Elements ---
+            /**
+             * Creates a DOM element for a single artwork, including its image and info.
+             * Sets up a click listener to open the modal with artwork details.
+             * @param {object} artwork - The artwork data object.
+             * @param {number} index - The index of the artwork in the 'artworks' array.
+             * @returns {HTMLElement} The created artwork div element.
+             */
+            function createArtworkElement(artwork, index) {
+                const artworkDiv = document.createElement('div');
+                // Add Tailwind CSS classes for card styling, shadow, rounded corners, and hover effects.
+                artworkDiv.classList.add('artwork', 'bg-white', 'rounded-xl', 'shadow-md', 'overflow-hidden',
+                                       'transition-all', 'duration-300', 'hover:scale-105', 'hover:shadow-xl',
+                                       'cursor-pointer', 'flex', 'flex-col'); // Added flex-col for internal layout
+
+                const image = document.createElement('img');
+                image.src = artwork.image;
+                image.alt = artwork.title;
+                // Tailwind classes for image sizing, making images uniform within the gallery.
+                image.classList.add('w-full', 'h-52', 'object-cover', 'block', 'rounded-t-xl', 'transition-transform', 'duration-300'); // Fixed height, object-cover
+
+                const infoDiv = document.createElement('div');
+                // Tailwind classes for padding and text alignment.
+                infoDiv.classList.add('artwork-info', 'p-4', 'text-center', 'flex-grow', 'flex', 'flex-col', 'justify-between'); // Added flex-grow
+
+                const title = document.createElement('h3');
+                // Tailwind classes for text styling.
+                title.classList.add('artwork-title', 'text-xl', 'font-bold', 'text-gray-800', 'mb-2');
+                title.textContent = artwork.title;
+
+                const artist = document.createElement('p');
+                // Tailwind classes for text styling.
+                artist.classList.add('artwork-artist', 'text-gray-600', 'text-base', 'font-medium'); // Adjusted font-size and weight
+                artist.textContent = artwork.artist;
+
+                infoDiv.appendChild(title);
+                infoDiv.appendChild(artist);
+
+                artworkDiv.appendChild(image);
+                artworkDiv.appendChild(infoDiv);
+
+                // Event listener for displaying modal when an artwork card is clicked.
+                artworkDiv.addEventListener('click', () => {
+                    artworkModal.style.display = 'flex'; // Show the modal using flex for centering.
+                    showArtworkInModal(index); // Display the clicked artwork in the modal.
+                    modalImage.addEventListener('click', toggleZoom); // Add zoom functionality to modal image.
+                });
+
+                return artworkDiv;
+            }
+
+            // --- Populate Gallery ---
+            // Iterate over the artworks data and add each artwork to the gallery.
+            artworks.forEach((artwork, index) => {
+                const artworkElement = createArtworkElement(artwork, index);
+                gallery.appendChild(artworkElement);
+            });
+
+            // --- Modal Event Listeners ---
+            // Event listener to close the modal when the close button is clicked.
+            closeButton.addEventListener('click', () => {
+                artworkModal.style.display = 'none'; // Hide the modal.
+                modalImage.classList.remove('zoomed'); // Reset zoom state when closing.
+                modalImage.removeEventListener('click', toggleZoom); // Remove zoom listener to prevent memory leaks.
+            });
+
+            // Event listener to close the modal when clicking outside the modal content.
+            window.addEventListener('click', (event) => {
+                if (event.target === artworkModal) { // Check if the click occurred directly on the modal overlay.
+                    artworkModal.style.display = 'none'; // Hide the modal.
+                    modalImage.classList.remove('zoomed'); // Reset zoom state.
+                    modalImage.removeEventListener('click', toggleZoom); // Remove zoom listener.
+                }
+            });
+
+            // --- Modal Navigation (Previous/Next Artwork) ---
+            modalPrevButton.addEventListener('click', () => showArtworkInModal(currentModalArtworkIndex - 1));
+            modalNextButton.addEventListener('click', () => showArtworkInModal(currentModalArtworkIndex + 1));
+
+            // --- Image Zoom Functionality in Modal ---
+            /**
+             * Toggles the 'zoomed' class on the modal image to apply/remove zoom effect.
+             * Also updates the cursor based on the zoom state.
+             */
+            function toggleZoom() {
+                this.classList.toggle('zoomed'); // Toggle the 'zoomed' class.
+                if (this.classList.contains('zoomed')) {
+                    this.style.cursor = 'zoom-out'; // Change cursor to zoom-out when zoomed.
+                } else {
+                    this.style.cursor = 'zoom-in'; // Change cursor to zoom-in when not zoomed.
+                }
+            }
+
+            // --- Background Music Control ---
+            let isMusicPlaying = false;
+            musicToggleButton.addEventListener('click', () => {
+                if (isMusicPlaying) {
+                    backgroundMusic.pause();
+                    isMusicPlaying = false;
+                    musicToggleButton.innerHTML = '<i class="fas fa-music mr-2"></i> Play Music';
+                } else {
+                    backgroundMusic.play().catch(e => console.error("Autoplay prevented:", e));
+                    isMusicPlaying = true;
+                    musicToggleButton.innerHTML = '<i class="fas fa-pause mr-2"></i> Pause Music';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
